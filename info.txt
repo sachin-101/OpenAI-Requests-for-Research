@@ -1,0 +1,11 @@
+info
+
+add the moves constraint
+
+1. Both player get positive reward for eating food.
+2. Both player die if collide with each otehr.
+3. Game ends if any player dies.
+4. Game DOES NOT end if any player eats food.
+5. Negative reward for every move.
+
+This makes sure that they race with each other, and try to get to the food fastest. They MUST NOT kill each other, as the game finishes by doing that. Ideal case would be to eat it fastest and not to kill. Also none of the players should give up. COLLABORATION AND COMPETIITON.
