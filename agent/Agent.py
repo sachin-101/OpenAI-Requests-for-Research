@@ -95,9 +95,9 @@ class DeepQ_agent:
 #---------------------helpful save function-------------------------------------#
     
     def save(self, dir, episode, info):
-        pass
+        torch.save(self.qnetwork_local.state_dict() , f'{dir}/model_{episode}_{info}.pth.tar')
 
 #----------------------Load a saved model----------------------------------------#
 
-    def load_weights(self, model_path):
-        pass
+    def load_model(self, model_path):
+        self.qnetwork_local.state_dict = torch.load(model_path)

@@ -1,9 +1,13 @@
 import cv2
+import sys
 import time
+import os
+from os.path import abspath, dirname
 
+sys.path.append(dirname(dirname(__file__)))
 from agent.Agent import DeepQ_agent
 from env.Environment import Env
-import os
+
 
 #creating the environment
 max_env_width, max_env_height = 20, 20
@@ -34,15 +38,15 @@ for m in models:
         latest_model = num
 
 
-model1_dir = f'{curr_dir}/model_{latest_model}_p1.h5'
-model2_dir = f'{curr_dir}/model_{latest_model}_p2.h5'
+model1_dir = f'{curr_dir}/model_{latest_model}_p1.pth.tar'
+model2_dir = f'{curr_dir}/model_{latest_model}_p2.pth.tar'
 print('Loading Models')
 print(model1_dir)
 print(model2_dir)
 print("-"*10)
 
-agent1.qnetwork_local.model = (model1_dir)
-agent2.qnetwork_local.model = (model2_dir)
+agent1.load_model(model1_dir)
+agent2.load_model(model2_dir)
 
 NUM_TIMES = 20
 
@@ -66,7 +70,7 @@ for i in range(NUM_TIMES):  #running for 10 times
 
         #render the environment
         env.render((a1, a2), (vision_1, vision_2), (stats1, stats2))
-        time.sleep(0.5)
+        time.sleep(0.2)
 
         score1 += reward_1
         score2 += reward_2

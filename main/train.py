@@ -51,7 +51,7 @@ agent2 = DeepQ_agent(env,  HIDDEN_UNITS, NETWORK_LR, BATCH_SIZE, UPDATE_EVERY, G
         
 scores1, scores2 = [], []
 stats_1, stats_2 = [0, 0, 0, 0], [0, 0, 0, 0]
-INCREASE_EVERY, SAVE_EVERY = 500, 100
+INCREASE_EVERY, SAVE_EVERY = 500, 10
 scores_window1, scores_window2 = deque(maxlen=INCREASE_EVERY), deque(maxlen=INCREASE_EVERY)
 #loop over episodes
 for i_episode in range(1, NUM_EPISODES+1):
@@ -129,4 +129,4 @@ for i_episode in range(1, NUM_EPISODES+1):
 #save the agent's q-network for testing
 agent1.save(train_dir, 'final', 'p1')
 agent2.save(train_dir, 'final', 'p2')
-        
+
