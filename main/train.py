@@ -1,23 +1,23 @@
 import os
 import sys
+from os.path import abspath, dirname
+
 import random
 import time
 import datetime
-from tensorflow.keras.models import load_model
-
-from Agent import DeepQ_agent
-from Environment import Env
 from collections import deque
 import numpy as np
 
-#import tensorflow as tf
-#tf.get_logger().setLevel('INFO')
+sys.path.append(dirname(dirname(__file__)))
+from agent.Agent import DeepQ_agent
+from env.Environment import Env
+
 
 # Initialise the environment
-max_env_width, max_env_height = 20, 20
-env_width, env_height = 10, 10
-display_width, display_height = 400, 400
-agent_vision = 2
+max_env_width, max_env_height = 30, 30
+env_width, env_height = 20, 20
+display_width, display_height = 600, 600
+agent_vision = 4
 env = Env(max_env_width, max_env_height, env_width, env_height, display_width, display_height, agent_vision)
 
 # Hyperparams ! all the magic happens here
@@ -43,16 +43,10 @@ logdir_agent_1 = os.path.join("logs", datetime.datetime.now().strftime("%Y%m%d-%
 logdir_agent_2 = os.path.join("logs", datetime.datetime.now().strftime("%Y%m%d-%H%M%S"), "p2")
 
 # Initialise the agents
-agent1 = DeepQ_agent(env, hidden_units = HIDDEN_UNITS, network_LR = NETWORK_LR, 
-                    batch_size = BATCH_SIZE, update_every = UPDATE_EVERY, 
-                    gamma = GAMMA, logdir=logdir_agent_1)
-agent2 = DeepQ_agent(env, hidden_units = HIDDEN_UNITS, network_LR = NETWORK_LR, 
-                    batch_size = BATCH_SIZE, update_every = UPDATE_EVERY, 
-                    gamma = GAMMA, logdir=logdir_agent_2)
+agent1 = DeepQ_agent(env, HIDDEN_UNITS, NETWORK_LR, BATCH_SIZE, UPDATE_EVERY, GAMMA, logdir=logdir_agent_1)
+agent2 = DeepQ_agent(env,  HIDDEN_UNITS, NETWORK_LR, BATCH_SIZE, UPDATE_EVERY, GAMMA, logdir=logdir_agent_2)
 
 #---------------Let's Train the agents-------------------------#
-
-
         
         
 scores1, scores2 = [], []

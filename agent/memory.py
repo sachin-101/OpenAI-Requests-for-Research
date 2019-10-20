@@ -1,6 +1,8 @@
 from collections import deque
 import random
 import numpy as np
+import torch
+
 
 class ReplayMemory:
 
@@ -15,19 +17,19 @@ class ReplayMemory:
         self.memory.append(e)
         
     
-    def sample(self, state_shape):
+    def sample(self, state_shape, device):
         '''Randomly sample a batch of experiences from memory'''
         
         experiences = random.sample(self.memory, k=self.BATCH_SIZE)
         #extracting the SARSA
         states, actions, rewards, next_states, dones = zip(*experiences)
- 
-        #converting them to numpy arrays for easy operations
-        states = np.array(states).reshape(self.BATCH_SIZE, state_shape)
-        actions = np.array(actions, dtype='int').reshape(self.BATCH_SIZE)
-        rewards = np.array(rewards).reshape(self.BATCH_SIZE)
-        next_states = np.array(next_states).reshape(self.BATCH_SIZE, state_shape)
-        dones = np.array(dones).reshape(self.BATCH_SIZE)
+
+        #converting them to torch tensors for easy operations
+        states = torch.tensor(states).reshape(self.BATCH_SIZE, state_shape).to(device, dtype=torch.float32)
+        actions = torch.tensor(actions).unsqueeze(1).to(device)
+        rewards = torch.tensor(rewards).unsqueeze(1).to(device, dtype=torch.float)
+        next_states = torch.tensor(next_states).reshape(self.BATCH_SIZE, state_shape).to(device, dtype=torch.float32)
+        dones = torch.tensor(dones).unsqueeze(1).to(device, dtype=torch.float)
         
         return states, actions, rewards, next_states, dones
     

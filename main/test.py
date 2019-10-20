@@ -1,9 +1,8 @@
 import cv2
 import time
 
-from tensorflow.keras.models import load_model
-from Agent import DeepQ_agent
-from Environment import Env
+from agent.Agent import DeepQ_agent
+from env.Environment import Env
 import os
 
 #creating the environment
@@ -42,8 +41,8 @@ print(model1_dir)
 print(model2_dir)
 print("-"*10)
 
-agent1.qnetwork_local.model = load_model(model1_dir)
-agent2.qnetwork_local.model = load_model(model2_dir)
+agent1.qnetwork_local.model = (model1_dir)
+agent2.qnetwork_local.model = (model2_dir)
 
 NUM_TIMES = 20
 

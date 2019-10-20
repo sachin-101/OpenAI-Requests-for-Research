@@ -1,13 +1,9 @@
 '''
  Collection of functions which help to show hyperparameters and other important info
 '''
-
+import cv2
 import numpy as np
-from cv2 import putText, FONT_HERSHEY_COMPLEX
 from PIL import Image
-
-
-# colors - b, g, r
 
 #colours - b, g, r
 WHITE = (255,255,255)
@@ -17,7 +13,7 @@ GREEN = (0,255,0)
 RED = (0,0,255)
 
 # text properties
-font = FONT_HERSHEY_COMPLEX
+font = cv2.FONT_HERSHEY_COMPLEX
 extra_cols = 20
 
 def add_states(env, state, action, left=False):
@@ -47,23 +43,23 @@ def add_info(width, height, disp_matrix, p1_params, p2_params, train_params=None
     
     if train_params is not None:
         episode, eps, gamma = train_params.values()
-        putText(img, 'Epsilon : {:.3f}'.format(eps), (int(width/2) - 200 , height - 10), font , 0.6, BLUE, 1)
-        putText(img, f'Episode {episode}', (int(width/2), height - 20), font , 0.8, BLUE, 2)
-        putText(img, f'Gamma : {gamma}', (int(width/2) + 200, height-10), font , 0.6, BLUE, 1)
+        cv2.putText(img, 'Epsilon : {:.3f}'.format(eps), (int(width/2) - 200 , height - 10), font , 0.6, BLUE, 1)
+        cv2.putText(img, f'Episode {episode}', (int(width/2), height - 20), font , 0.8, BLUE, 2)
+        cv2.putText(img, f'Gamma : {gamma}', (int(width/2) + 200, height-10), font , 0.6, BLUE, 1)
     
     # Player 1
-    putText(img, f'PLAYER {1}', (x_pos1, 70), font , 0.6, RED  , 1)
+    cv2.putText(img, f'PLAYER {1}', (x_pos1, 70), font , 0.6, RED  , 1)
     stats_1 = p1_params['stats']
-    putText(img, f'Food: {stats_1[1]}', (x_pos1, 100), font , 0.6, RED  , 1)
-    putText(img, f'Hit {stats_1[2]}', (x_pos1, 130), font , 0.6, RED  , 1)
-    putText(img, f'Boundary {stats_1[3]}', (x_pos1, 160), font , 0.6, RED  , 1)
+    cv2.putText(img, f'Food: {stats_1[1]}', (x_pos1, 100), font , 0.6, RED  , 1)
+    cv2.putText(img, f'Hit {stats_1[2]}', (x_pos1, 130), font , 0.6, RED  , 1)
+    cv2.putText(img, f'Boundary {stats_1[3]}', (x_pos1, 160), font , 0.6, RED  , 1)
 
     # Player 2
-    putText(img, f'PLAYER {2}', (x_pos2, 70), font , 0.6, RED  , 1)
+    cv2.putText(img, f'PLAYER {2}', (x_pos2, 70), font , 0.6, RED  , 1)
     stats_2 = p2_params['stats']
-    putText(img, f'Food: {stats_2[1]}', (x_pos2, 100), font , 0.6, RED  , 1)
-    putText(img, f'Hit {stats_2[2]}', (x_pos2, 130), font , 0.6, RED  , 1)
-    putText(img, f'Boundary {stats_2[3]}', (x_pos2, 160), font , 0.6, RED  , 1)
+    cv2.putText(img, f'Food: {stats_2[1]}', (x_pos2, 100), font , 0.6, RED  , 1)
+    cv2.putText(img, f'Hit {stats_2[2]}', (x_pos2, 130), font , 0.6, RED  , 1)
+    cv2.putText(img, f'Boundary {stats_2[3]}', (x_pos2, 160), font , 0.6, RED  , 1)
 
 
     return img

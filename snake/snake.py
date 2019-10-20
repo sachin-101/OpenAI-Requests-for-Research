@@ -2,7 +2,6 @@ from collections import deque
 import numpy as np 
 import time
 import random
-import Environment
 
 #colours - b, g, r
 WHITE = (255,255,255)

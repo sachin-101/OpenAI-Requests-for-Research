@@ -3,47 +3,40 @@ import random
 import numpy as np
 from collections import deque
 
-from tensorflow.keras.models import load_model
-from tensorflow.keras.callbacks import TensorBoard
+import torch
+import torch.optim as optim
+import torch.nn.functional as F
 
-from q_network import QNetwork 
-from memory import ReplayMemory
+from agent.q_network import QNetwork 
+from agent.memory import ReplayMemory
 
+device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
   
 class DeepQ_agent:
 
-    def __init__(self, env, hidden_units = None, network_LR = 0.001, batch_size = 64, update_every=4, gamma=1.0, summarry=True, logdir=None):
+    def __init__(self, env, hidden_units = None, network_LR = 0.001, batch_size = 64, 
+                    update_every=4, gamma=1.0, summarry=True, logdir=None):
         self.env = env
         self.BATCH_SIZE = batch_size
         self.GAMMA = gamma
-        self.NETWORK_LR = network_LR
-        self.MEMORY_CAPACITY = int(1e5)   #this is pythonic
+        memory_capacity = int(1e5)   #this is pythonic
         
         self.nA = env.ACTION_SPACE              #number of actions agent can perform
-        self.HIDDEN_UNITS = hidden_units
         self.UPDATE_EVERY = update_every
-       
+
         #let's give it some brains
-        self.qnetwork_local = QNetwork(input_shape = self.env.STATE_SPACE,
-                                        hidden_units = self.HIDDEN_UNITS,
-                                        output_shape = self.nA,
-                                        learning_rate = self.NETWORK_LR)
+        self.qnetwork_local = QNetwork(self.env.STATE_SPACE, hidden_units, self.nA).to(device)
+        
+        self.optimizer = optim.Adam(self.qnetwork_local.parameters(), lr=network_LR)
         if summarry:
-            print(self.qnetwork_local.model.summary())
+            print(self.qnetwork_local)
         
         #I call the target network as the PC
         # Where our agent stores all the concrete and important stuff
-        self.qnetwork_target = QNetwork(input_shape = self.env.STATE_SPACE,
-                                        hidden_units = self.HIDDEN_UNITS,
-                                        output_shape = self.nA,
-                                        learning_rate = self.NETWORK_LR)
+        self.qnetwork_target = QNetwork(self.env.STATE_SPACE, hidden_units, self.nA).to(device)
 
         #and the memory of course
-        self.memory = ReplayMemory(self.MEMORY_CAPACITY, self.BATCH_SIZE) 
-
-        #creating a callback  
-        if logdir is not None:
-            self.tensorboard_callback = TensorBoard(logdir)
+        self.memory = ReplayMemory(memory_capacity, self.BATCH_SIZE) 
 
         #handy temp variable
         self.t = 0
@@ -56,31 +49,27 @@ class DeepQ_agent:
         '''
 
         if self.memory.__len__() > self.BATCH_SIZE:
-            states, actions, rewards, next_states, dones = self.memory.sample(self.env.STATE_SPACE)
+            states, actions, rewards, next_states, dones = self.memory.sample(self.env.STATE_SPACE, device)
+
+            # gather, refer here https://stackoverflow.com/a/54706716/10666315
+            Q_expected = self.qnetwork_local(states).gather(1, actions)
             
-            #calculating action-values using local network
-            target = self.qnetwork_local.predict(states, self.BATCH_SIZE)
+            # Get max predicted action-values for next states, using target model
+            # detach, detaches the tensor from graph
+            # max(1) return two tensors, one containing max values along dim=1, 
+            # other containing indices of max values along dim=1
+            # unsqueeze(1) inserts a dimension of size one at specified position
+            Q_targets_next = self.qnetwork_target(next_states).detach().max(1)[0].unsqueeze(1)
+
+            Q_targets =  rewards + (self.GAMMA * Q_targets_next * (1 - dones))
             
-            #future action-values using target network
-            target_val = self.qnetwork_target.predict(next_states, self.BATCH_SIZE)
-            
-            #future action-values using local network
-            target_next = self.qnetwork_local.predict(next_states, self.BATCH_SIZE)
-            
-            #The main point of Double DQN is selection of action from local network
-            #while the update si from target network
-            max_action_values = np.argmax(target_next, axis=1)   #action selection
-            
-            for i in range(self.BATCH_SIZE):
-                if dones[i]:
-                    target[i][actions[i]] = rewards[i]
-                else:
-                    target[i][actions[i]] = rewards[i] + self.GAMMA*target_val[i][max_action_values[i]]   #action evaluation
-            
-            self.qnetwork_local.train(states, target, self.BATCH_SIZE, self.tensorboard_callback)
+            loss = F.mse_loss(Q_expected, Q_targets)
+            self.optimizer.zero_grad()
+            loss.backward()
+            self.optimizer.step()
 
             if self.t == self.UPDATE_EVERY:
-                self.update_target_weights()
+                self.qnetwork_target.state_dict = self.qnetwork_local.state_dict  # update target network
                 self.t = 0
             else:
                 self.t += 1
@@ -89,10 +78,10 @@ class DeepQ_agent:
 #-----------------------Time to act-----------------------------------------------#
 
     def act(self, state, epsilon = 0):                 #set to NO exploration by default
-        state = state.reshape((1,)+state.shape)
-        action_values = self.qnetwork_local.predict(state)    #returns a vector of size = self.nA
+        state = torch.from_numpy(state).to(device, dtype=torch.float32)
+        action_values = self.qnetwork_local(state)    #returns a vector of size = self.nA
         if random.random() > epsilon:
-            action = np.argmax(action_values)      #choose best action - Exploitation
+            action = torch.argmax(action_values).item()      #choose best action - Exploitation
         else:
             action = random.randint(0, self.nA-1)  #choose random action - Exploration
         
@@ -103,19 +92,12 @@ class DeepQ_agent:
     def add_experience(self, state, action, reward, next_state, done):
         self.memory.add(state, action, reward, next_state, done)
 
-
-#----------------------Updates values of Target network----------------------------#
-    
-    def update_target_weights(self):
-        #well now we are doing hard update, but we can do soft update also
-        self.qnetwork_target.model.set_weights(self.qnetwork_local.model.get_weights())
-
 #---------------------helpful save function-------------------------------------#
     
     def save(self, dir, episode, info):
-        self.qnetwork_local.model.save(f'{dir}/model_{episode}_{info}.h5')
+        pass
 
 #----------------------Load a saved model----------------------------------------#
 
     def load_weights(self, model_path):
-        self.qnetwork_local.model = load_model(model_path)
+        pass

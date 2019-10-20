@@ -3,10 +3,10 @@ from PIL import Image
 import cv2
 import numpy as np
 import time
-
-from snake import Snake
 from collections import deque
-from display_utils import add_info, add_states
+
+from snake.snake import Snake
+from env.display_utils import add_info, add_states
 
 """
     ___     __               __ 
