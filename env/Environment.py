@@ -58,6 +58,7 @@ class Env():
     def change_size(self, w_change, h_change):
         self.w = min(self.w + w_change, self.max_w-2)
         self.h = min(self.h + h_change, self.max_h-2)
+        return self.w, self.h
 
 #---------helpful function to get boundaries----------#
 

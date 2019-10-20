@@ -5,6 +5,7 @@ from os.path import abspath, dirname
 import random
 import time
 import datetime
+import pickle
 from collections import deque
 import numpy as np
 
@@ -47,7 +48,20 @@ agent1 = DeepQ_agent(env, HIDDEN_UNITS, NETWORK_LR, BATCH_SIZE, UPDATE_EVERY, GA
 agent2 = DeepQ_agent(env,  HIDDEN_UNITS, NETWORK_LR, BATCH_SIZE, UPDATE_EVERY, GAMMA, logdir=logdir_agent_2)
 
 #---------------Let's Train the agents-------------------------#
-        
+
+# save environment parameters
+hyperparams = {  'max_env_width' : max_env_width, 
+                'max_env_height' : max_env_height,
+                'env_width' : env_width, 
+                'env_height' : env_height, 
+                'display_width' : display_width, 
+                'display_height' : display_height, 
+                'agent_vision' : agent_vision,
+                'hidden_units' : HIDDEN_UNITS
+}
+
+with open(f'{train_dir}/params.pickle', 'wb') as f:
+    pickle.dump(hyperparams, f)
         
 scores1, scores2 = [], []
 stats_1, stats_2 = [0, 0, 0, 0], [0, 0, 0, 0]
@@ -119,7 +133,7 @@ for i_episode in range(1, NUM_EPISODES+1):
     
     #increase environment size
     if (i_episode +1)% INCREASE_EVERY == 0:
-        env.change_size(1, 1)  #increase the env size by 1
+        env_width, env_height = env.change_size(1, 1)  #increase the env size by 1
     
     #after 6k episodes increase up the training process
     if (i_episode + 1) == 6000:
@@ -130,3 +144,16 @@ for i_episode in range(1, NUM_EPISODES+1):
 agent1.save(train_dir, 'final', 'p1')
 agent2.save(train_dir, 'final', 'p2')
 
+# save environment parameters
+hyperparams = {  'max_env_width' : max_env_width, 
+                'max_env_height' : max_env_height,
+                'env_width' : env_width, 
+                'env_height' : env_height, 
+                'display_width' : display_width, 
+                'display_height' : display_height, 
+                'agent_vision' : agent_vision,
+                'hidden_units' : HIDDEN_UNITS
+}
+
+with open('{train_dir}/params.pickle') as f:
+    f.dump(hyperparams)

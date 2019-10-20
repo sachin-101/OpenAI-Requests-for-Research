@@ -2,23 +2,13 @@ import cv2
 import sys
 import time
 import os
+import pickle
 from os.path import abspath, dirname
 
 sys.path.append(dirname(dirname(__file__)))
 from agent.Agent import DeepQ_agent
 from env.Environment import Env
 
-
-#creating the environment
-max_env_width, max_env_height = 20, 20
-env_width, env_height = 10, 10
-display_width, display_height = 400, 400
-agent_vision = 4
-env = Env(max_env_width, max_env_height, env_width, env_height, display_width, display_height, agent_vision)
-
-HIDDEN_UNITS = (64, 32)
-agent1 = DeepQ_agent(env, hidden_units=HIDDEN_UNITS, summarry=True)
-agent2 = DeepQ_agent(env, hidden_units=HIDDEN_UNITS, summarry=False)
 
 parent_dir = 'Training Files'
 i = 0
@@ -36,7 +26,21 @@ for m in models:
     num = int(m.split('_')[1])
     if num > latest_model:
         latest_model = num
+    
 
+curr_dir = "Training Files/Training_9"
+with open(f'{curr_dir}/params.pickle', 'rb') as f:
+    params = pickle.load(f)
+
+
+#creating the environment
+env = Env(params['max_env_width'], params['max_env_height'], 
+        params['env_width'], params['env_height'], 
+        params['display_width'], params['display_height'], 
+        params['agent_vision'])
+
+agent1 = DeepQ_agent(env, hidden_units=params['hidden_units'], summarry=True)
+agent2 = DeepQ_agent(env, hidden_units=params['hidden_units'], summarry=False)
 
 model1_dir = f'{curr_dir}/model_{latest_model}_p1.pth.tar'
 model2_dir = f'{curr_dir}/model_{latest_model}_p2.pth.tar'
