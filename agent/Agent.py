@@ -15,7 +15,7 @@ device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 class DeepQ_agent:
 
     def __init__(self, env, hidden_units = None, network_LR = 0.001, batch_size = 64, 
-                    update_every=4, gamma=1.0, summarry=True, logdir=None):
+                    update_every=4, gamma=1.0, summarry=True):
         self.env = env
         self.BATCH_SIZE = batch_size
         self.GAMMA = gamma
@@ -43,7 +43,7 @@ class DeepQ_agent:
 
 #----------------------Learn from experience-----------------------------------#
 
-    def learn(self):
+    def learn(self, writer=None, episode=-1):
         '''
             hell yeah   
         '''
@@ -67,6 +67,10 @@ class DeepQ_agent:
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
+
+            if writer is not None:
+                writer.add_scalar('Training Loss', loss, episode)  # write to tensorboard summary
+                
 
             if self.t == self.UPDATE_EVERY:
                 self.qnetwork_target.state_dict = self.qnetwork_local.state_dict  # update target network

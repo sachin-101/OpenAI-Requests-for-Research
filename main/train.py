@@ -9,6 +9,8 @@ import pickle
 from collections import deque
 import numpy as np
 
+from torch.utils.tensorboard import SummaryWriter
+
 sys.path.append(dirname(dirname(__file__)))
 from agent.Agent import DeepQ_agent
 from env.Environment import Env
@@ -39,15 +41,6 @@ while True:
         break
     i += 1
 
-#directory where tensorflow will store the logs, for tensorboard to read  
-logdir_agent_1 = os.path.join("logs", datetime.datetime.now().strftime("%Y%m%d-%H%M%S"), "p1")
-logdir_agent_2 = os.path.join("logs", datetime.datetime.now().strftime("%Y%m%d-%H%M%S"), "p2")
-
-# Initialise the agents
-agent1 = DeepQ_agent(env, HIDDEN_UNITS, NETWORK_LR, BATCH_SIZE, UPDATE_EVERY, GAMMA, logdir=logdir_agent_1)
-agent2 = DeepQ_agent(env,  HIDDEN_UNITS, NETWORK_LR, BATCH_SIZE, UPDATE_EVERY, GAMMA, logdir=logdir_agent_2)
-
-#---------------Let's Train the agents-------------------------#
 
 # save environment parameters
 hyperparams = {  'max_env_width' : max_env_width, 
@@ -62,11 +55,21 @@ hyperparams = {  'max_env_width' : max_env_width,
 
 with open(f'{train_dir}/params.pickle', 'wb') as f:
     pickle.dump(hyperparams, f)
-        
+
+tensorboard_dir = os.path.join(train_dir, 'Tensorboard_Summary')
+writer1 = SummaryWriter(os.path.join(tensorboard_dir, 'p1'))
+writer2 = SummaryWriter(os.path.join(tensorboard_dir, 'p2'))
+
+# Initialise the agents
+agent1 = DeepQ_agent(env, HIDDEN_UNITS, NETWORK_LR, BATCH_SIZE, UPDATE_EVERY, GAMMA)
+agent2 = DeepQ_agent(env,  HIDDEN_UNITS, NETWORK_LR, BATCH_SIZE, UPDATE_EVERY, GAMMA)
+
+#---------------Let's Train the agents-------------------------#
 scores1, scores2 = [], []
 stats_1, stats_2 = [0, 0, 0, 0], [0, 0, 0, 0]
-INCREASE_EVERY, SAVE_EVERY = 500, 10
+INCREASE_EVERY, SAVE_EVERY = 500, 100
 scores_window1, scores_window2 = deque(maxlen=INCREASE_EVERY), deque(maxlen=INCREASE_EVERY)
+food, hit, boundary = 1, 2, 3
 #loop over episodes
 for i_episode in range(1, NUM_EPISODES+1):
     
@@ -88,10 +91,10 @@ for i_episode in range(1, NUM_EPISODES+1):
 
         #add the experience to agent's memory
         agent1.add_experience(state_1, a1, reward_1, next_state_1, done_1)
-        agent1.learn()
+        agent1.learn(writer1, i_episode)
         
         agent2.add_experience(state_2, a2, reward_2, next_state_2, done_2)
-        agent2.learn()
+        agent2.learn(writer2, i_episode)
 
         #render the environment
         env.render((a1, a2), (vision_1, vision_2), episode=i_episode, epsilon=eps, gamma=GAMMA, stats=(stats_1, stats_2), train=True)
@@ -118,14 +121,23 @@ for i_episode in range(1, NUM_EPISODES+1):
     scores_window2.append(score2)
     scores1.append(score1)
     scores1.append(score2)
-  
-    print('episode', i_episode)
+    
+    # write logs
+    writer1.add_scalar('Food', stats_1[food], i_episode)
+    writer2.add_scalar('Food', stats_2[food], i_episode)
+
+    writer1.add_scalar('Hit Boundary', stats_1[boundary], i_episode)
+    writer2.add_scalar('Hit Boundary', stats_2[boundary], i_episode)
+
+    writer1.add_scalar('Hit_oppn', stats_1[hit], i_episode)
+    writer2.add_scalar('Hit_oppn', stats_2[hit], i_episode)
+    
     # monitor progress    
     if (i_episode + 1)% SAVE_EVERY == 0:
-        agent1.save(train_dir, i_episode+1, info='p1')
-        agent2.save(train_dir, i_episode+1, info='p2')
+        agent1.save(os.path.join(train_dir, 'p1'), i_episode+1, info='p1')
+        agent2.save(os.path.join(train_dir, 'p2'), i_episode+1, info='p2')
         
-        print('\rEpisode {}\t Score_1 {}\tAvg Score_1: {:.2f}\t Score_2 {}\tAvg Score_2: {:.2f}'\
+        print('\n\rEpisode {}\t Score_1 {}\tAvg Score_1: {:.2f}\t Score_2 {}\tAvg Score_2: {:.2f}'\
             .format(i_episode+1, score1, np.mean(scores_window1), score2, np.mean(scores_window2)))
         print('stats Player 1', stats_1)
         print('stats Player 2', stats_2)
@@ -143,17 +155,3 @@ for i_episode in range(1, NUM_EPISODES+1):
 #save the agent's q-network for testing
 agent1.save(train_dir, 'final', 'p1')
 agent2.save(train_dir, 'final', 'p2')
-
-# save environment parameters
-hyperparams = {  'max_env_width' : max_env_width, 
-                'max_env_height' : max_env_height,
-                'env_width' : env_width, 
-                'env_height' : env_height, 
-                'display_width' : display_width, 
-                'display_height' : display_height, 
-                'agent_vision' : agent_vision,
-                'hidden_units' : HIDDEN_UNITS
-}
-
-with open('{train_dir}/params.pickle') as f:
-    f.dump(hyperparams)
