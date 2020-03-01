@@ -4,6 +4,7 @@ OpenAI has released a new batch of seven unsolved problems which have come up in
 
 ### Warmups
 
+<<<<<<< HEAD
 - [] Train an LSTM to solve xor problem.
 - [x] Implement a clone of classic Sanke Game and solve it using RL algorithm.
 
@@ -16,3 +17,17 @@ OpenAI has released a new batch of seven unsolved problems which have come up in
 - [] Learned Data Augmentation
 - [] Regularization in Reinforcement Learning
 - [] Automated Solutions of Olympiad Inequality Problems
+=======
+[] Train an LSTM to solve xor problem.
+[x] Implement a clone of classic Sanke Game and solve it using RL algorithm.
+
+### Main Problem statements
+
+[] Slitherin'. : Implement and solve a multiplayer clone of classic Snake game.  (***Work Going On***)
+[] Parameter Averaging in Distributed RL 
+[] Transfer learning between different games via Generative Models
+[] Transformers with Linear Attention
+[] Learned Data Augmentation
+[] Regularization in Reinforcement Learning
+[] Automated Solutions of Olympiad Inequality Problems
+>>>>>>> a06e75f35ed652416f44cc98cc950703e7e03e6e
