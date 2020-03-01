@@ -17,9 +17,9 @@ from env.Environment import Env
 
 
 # Initialise the environment
-max_env_width, max_env_height = 30, 30
-env_width, env_height = 20, 20
-display_width, display_height = 600, 600
+max_env_width, max_env_height = 20, 20
+env_width, env_height = 5, 5
+display_width, display_height = 400, 400
 agent_vision = 4
 env = Env(max_env_width, max_env_height, env_width, env_height, display_width, display_height, agent_vision)
 
@@ -38,6 +38,8 @@ while True:
     train_dir = os.path.join(parent_dir, f'Training_{i}')
     if not os.path.exists(train_dir):
         os.mkdir(train_dir)
+        os.mkdir(os.path.join(train_dir, 'p1'))
+        os.mkdir(os.path.join(train_dir, 'p2'))
         break
     i += 1
 
@@ -59,6 +61,7 @@ with open(f'{train_dir}/params.pickle', 'wb') as f:
 tensorboard_dir = os.path.join(train_dir, 'Tensorboard_Summary')
 writer1 = SummaryWriter(os.path.join(tensorboard_dir, 'p1'))
 writer2 = SummaryWriter(os.path.join(tensorboard_dir, 'p2'))
+writer = SummaryWriter(os.path.join(tensorboard_dir, 'params'))
 
 # Initialise the agents
 agent1 = DeepQ_agent(env, HIDDEN_UNITS, NETWORK_LR, BATCH_SIZE, UPDATE_EVERY, GAMMA)
@@ -70,6 +73,8 @@ stats_1, stats_2 = [0, 0, 0, 0], [0, 0, 0, 0]
 INCREASE_EVERY, SAVE_EVERY = 500, 100
 scores_window1, scores_window2 = deque(maxlen=INCREASE_EVERY), deque(maxlen=INCREASE_EVERY)
 food, hit, boundary = 1, 2, 3
+
+render = False
 #loop over episodes
 for i_episode in range(1, NUM_EPISODES+1):
     
@@ -80,8 +85,9 @@ for i_episode in range(1, NUM_EPISODES+1):
     #a1 = int(input())
     #a2 = int(input())
 
-    #render the environment         
-    env.render((a1, a2), (vision_1, vision_2), episode=i_episode, epsilon=eps, gamma=GAMMA, stats=(stats_1, stats_2), train=True)
+    #render the environment
+    if render:        
+        env.render((a1, a2), (vision_1, vision_2), episode=i_episode, epsilon=eps, gamma=GAMMA, stats=(stats_1, stats_2), train=True)
     score1, score2 = 0, 0
 
     while True:
@@ -97,7 +103,8 @@ for i_episode in range(1, NUM_EPISODES+1):
         agent2.learn(writer2, i_episode)
 
         #render the environment
-        env.render((a1, a2), (vision_1, vision_2), episode=i_episode, epsilon=eps, gamma=GAMMA, stats=(stats_1, stats_2), train=True)
+        if render:
+            env.render((a1, a2), (vision_1, vision_2), episode=i_episode, epsilon=eps, gamma=GAMMA, stats=(stats_1, stats_2), train=True)
 
         score1 += reward_1
         score2 += reward_2
@@ -131,6 +138,12 @@ for i_episode in range(1, NUM_EPISODES+1):
 
     writer1.add_scalar('Hit_oppn', stats_1[hit], i_episode)
     writer2.add_scalar('Hit_oppn', stats_2[hit], i_episode)
+
+    writer1.add_scalar('Score', score1, i_episode)
+    writer2.add_scalar('Score', score2, i_episode)
+
+    writer.add_scalar('Env width/height', env_width, i_episode)
+    writer.add_scalar('epsilon', eps, i_episode)
     
     # monitor progress    
     if (i_episode + 1)% SAVE_EVERY == 0:
@@ -155,3 +168,5 @@ for i_episode in range(1, NUM_EPISODES+1):
 #save the agent's q-network for testing
 agent1.save(train_dir, 'final', 'p1')
 agent2.save(train_dir, 'final', 'p2')
+
+

@@ -3,3 +3,5 @@ __pycache__
 logs/
 Training\ Files/
 check.py
+Visualiser/
+info.txt

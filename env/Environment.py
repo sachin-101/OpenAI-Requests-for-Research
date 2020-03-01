@@ -56,8 +56,8 @@ class Env():
 #-------Increase the size of environment------#
     
     def change_size(self, w_change, h_change):
-        self.w = min(self.w + w_change, self.max_w-2)
-        self.h = min(self.h + h_change, self.max_h-2)
+        self.w = min(self.w + w_change, self.max_w-self.agent_vision)
+        self.h = min(self.h + h_change, self.max_h-self.agent_vision)
         return self.w, self.h
 
 #---------helpful function to get boundaries----------#
@@ -190,20 +190,20 @@ class Env():
             done = True 
             reward = 0
             info = 3
-        
+        """
         # check collision with other agents
         if self.env[new_y, new_x] == CONSTANTS[f'p{opp_player}'] and not done:
             done = True
             reward = -10
             info = 2
-        
+        """
         # check if ate food
         if self.env[new_y, new_x] == CONSTANTS['food']:
             p.grow()
             self.env[new_y, new_x] = CONSTANTS['background']
             self.food_x, self.food_y = self.get_randoms()
             self.env[self.food_y, self.food_x] = CONSTANTS['food']
-            reward = 10
+            reward = 50
             info = 1
             
 

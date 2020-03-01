@@ -25,10 +25,22 @@ class ReplayMemory:
         states, actions, rewards, next_states, dones = zip(*experiences)
 
         #converting them to torch tensors for easy operations
-        states = torch.tensor(states).reshape(self.BATCH_SIZE, state_shape).to(device, dtype=torch.float32)
+        states = torch.tensor(states).reshape(-1, state_shape).to(device, dtype=torch.float32)
         actions = torch.tensor(actions).unsqueeze(1).to(device)
         rewards = torch.tensor(rewards).unsqueeze(1).to(device, dtype=torch.float)
-        next_states = torch.tensor(next_states).reshape(self.BATCH_SIZE, state_shape).to(device, dtype=torch.float32)
+        print(type(next_states[0]))
+        print(next_states[0].shape)
+        print(state_shape)
+        print(len(states))
+        print(states[0].shape)
+        try:
+            next_states = torch.tensor(next_states).reshape(-1, state_shape).to(device, dtype=torch.float32)
+        except ValueError:
+            print('\n Analysis')
+            print(type(next_states))
+            print(len(next_states))
+            print()
+            print('state_shape', state_shape)
         dones = torch.tensor(dones).unsqueeze(1).to(device, dtype=torch.float)
         
         return states, actions, rewards, next_states, dones
