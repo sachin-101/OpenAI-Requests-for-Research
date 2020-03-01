@@ -1,0 +1,7 @@
+__pycache__
+.vscode
+logs/
+Training\ Files/
+check.py
+Visualiser/
+info.txt
