@@ -3,5 +3,5 @@ __pycache__
 logs/
 Training\ Files/
 check.py
-Visualiser/
+Multiagent_Snake_Game/Visualizer/
 info.txt
